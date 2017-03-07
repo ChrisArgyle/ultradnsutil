@@ -10,11 +10,29 @@ PASSWORD = "password"
 API_DOMAIN = "restapi.ultradns.com"
 
 
-def print_json_result(json_result):
+def delete_a_record(client, zone_name, a_record):
     """
-    Print the json formatted result of an api query
+    Delete "A" record from zone.  zone_name can be either relative to the zone (ex 'foo') or it can
+    be absolute ('foo.example.com.')
     """
-    print("result \"{}\"".format(json_result))
+    try:
+        json_result = client.delete_rrset(zone_name, "A", a_record)
+    except Exception as e:
+        errordie("Failed to delete A record '{}.{}': {}".format(a_record, zone_name, e))
+
+    print_json_result(json_result)
+
+
+def promote_zone(client, zone_name):
+    """
+    Promote a secondary zone to primary
+    """
+    try:
+        json_result = client.convert_zone("{}.".format(zone_name))
+    except Exception as e:
+        errordie("Failed to promote zone '{}': {}".format(zone_name, e))
+
+    print_json_result(json_result)
 
 
 def delete_zone(client, zone_name):
@@ -71,6 +89,13 @@ def list_zone(client, zone_name, q):
         print(zone['properties']['name'][:-1])
 
 
+def print_json_result(json_result):
+    """
+    Print the json formatted result of an api query
+    """
+    print("result \"{}\"".format(json_result))
+
+
 def errordie(message):
     """
     Print error message then quit with exit code 1
@@ -86,7 +111,9 @@ def main():
     """
     # parse command line args
     parser = argparse.ArgumentParser()
-    parser.add_argument('-z', '--zone', default=None, help="zone to run query against")
+    parser.add_argument('-z', '--zone', default=None, help="Specify zone to use in query")
+    parser.add_argument('-a', '--a-record', default=None, 
+            help="Specify A record to use in query.  Can be relative (ex 'foo') or absolute (ex 'foo.example.com')")
     parser.add_argument('-p', '--primary-ns', default=None,
             help="primary NS to receive zone xfer from")
     parser.add_argument('command',
@@ -115,21 +142,28 @@ def main():
 
     if (args.command == 'add_secondary_zone' or
             args.command == 'delete_zone' or
-            args.command == 'promote_zone'):
+            args.command == 'promote_zone' or
+            args.command == 'delete_a'):
         if args.zone == None:
             errordie("Please specify zone to run query against")
 
     if args.command == 'add_secondary_zone' and getattr(args, 'primary_ns', None) == None:
         errordie("Please specify primary NS to receive zone xfer from")
 
+    if args.command =='delete_a' and getattr(args, 'a_record', None) == None:
+        errordie("Please specify an A record to delete")
+
     # validate creds yaml file
     try:
         creds_file = open(args.creds_file, "r")
         creds = yaml.load(creds_file)
         creds_file.close()
+
     except Exception as e:
         errordie("Could not load API credentials yaml file: {}".format(e))
 
+    if creds is None:
+        errordie("API credentials file does not contain valid YAML")
     if USER_NAME not in creds:
         errordie("API credentials file does not specify '{}'".format(USER_NAME))
     if PASSWORD not in creds:
@@ -151,6 +185,10 @@ def main():
         add_secondary_zone(client, args.zone, args.primary_ns)
     elif args.command == 'delete_zone':
         delete_zone(client, args.zone)
+    elif args.command == 'promote_zone':
+        promote_zone(client, args.zone)
+    elif args.command == 'delete_a':
+        delete_a_record(client, args.zone, args.a_record)
 
 if __name__ == "__main__":
     main()
