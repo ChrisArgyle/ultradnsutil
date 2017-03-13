@@ -77,10 +77,15 @@ def get_account_name(client):
 def list_zone(client, zone_name, q):
     """
     Print names of all zones
+
+    TODO: 
+    * should check for zones['errorCode'] before iterating over zones
+    * should loop for queries that return >1000 zones
     """
     try:
         account_name = get_account_name(client)
-        zones = client.get_zones_of_account(account_name, q)
+        # the default limit is 100. the max limit appears to be 1000
+        zones = client.get_zones_of_account(account_name, q, limit=1000)
     except Exception as e:
         errordie("failed to get zone(s): {}".format(e))
 
