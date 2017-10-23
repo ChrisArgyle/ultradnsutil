@@ -86,6 +86,9 @@ def list_zone(client, zone_name, q):
         account_name = get_account_name(client)
         # the default limit is 100. the max limit appears to be 1000
         zones = client.get_zones_of_account(account_name, q, limit=1000)
+        if 'zones' not in zones:
+            raise Exception('API returned {}'.format(zones))
+
     except Exception as e:
         errordie("failed to get zone(s): {}".format(e))
 
@@ -130,11 +133,8 @@ def main():
                 'delete_zone',
                 'promote_zone',
                 'delete_a',
-                'add_web',
-                'add_slb',
-                'add_tc',
                 ],
-            help="command: list/add/delete/promote zone, delete A record, add Web Forwarding/Simple Load Balancer/Traffic Controller entry")
+            help="command: list/add/delete/promote zone, delete A record")
     parser_required = parser.add_argument_group('required arguments')
     parser_required.add_argument('-c', '--creds-file',
             help="API credentials yaml file: contains {} and {}".format(USER_NAME, PASSWORD))
