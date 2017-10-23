@@ -1,7 +1,7 @@
 ============
 ultradnsutil
 ============
-Use this utility to manage DNS zones and records on UltraDNS managed DNS. This utility can list, create, delete and promote zones but also delete A records.
+Use this utility to manage DNS zones and records on UltraDNS managed DNS. This utility can list, create, delete and promote zones.  In addition it can delete A records.
 
 How do I use it?
 ================
