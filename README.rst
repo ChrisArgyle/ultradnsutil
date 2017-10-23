@@ -21,7 +21,7 @@ How do I use it?
     $ python ultradnsutil.py -c ~/ultracreds.yml list_primary_zone
     example.com
 
-    $ python ultradnsutil.py -c ~/ultracreds.yml list_seondary_zone
+    $ python ultradnsutil.py -c ~/ultracreds.yml list_secondary_zone
     contoso.com
 
 * *Creating secondary zones*::
